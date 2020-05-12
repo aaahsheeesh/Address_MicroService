@@ -1,6 +1,5 @@
 package com.capgemini.go.controller;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,10 +17,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
-import com.capgemini.go.exception.ResourceNotFoundException;
+import com.capgemini.go.exception.AddressNotFoundException;
 import com.capgemini.go.model.Address;
-import com.capgemini.go.repository.AddressRepository;;
+import com.capgemini.go.service.AddressService;
 
 
 
@@ -31,52 +29,37 @@ import com.capgemini.go.repository.AddressRepository;;
 public class AddressController {
 	
 	    @Autowired
-	    private AddressRepository addressRepository;
+	    private AddressService addressService;
 
 	    @GetMapping("/address")
 	    public List<Address> getAllAddress() {
-	        return addressRepository.findAll();
+	        return addressService.getAllAddress();
 	    }
 
 	    @GetMapping("/address/{addressId}")
 	    public ResponseEntity<Address> getAddressId(@PathVariable(value = "addressId") Long addressId)
-	        throws ResourceNotFoundException {
-	    	Address address = addressRepository.findById(addressId)
-	          .orElseThrow(() -> new ResourceNotFoundException("Address not found for this id :: " + addressId));
+	        throws AddressNotFoundException {
+	    	Address address = addressService.getAddressId(addressId);
 	        return ResponseEntity.ok().body(address);
 	    }
 	    
 	    @PostMapping("/address")
 	    public Address createAddress(@Valid @RequestBody Address address) {
-	        return addressRepository.save(address);
+	        return addressService.createAddress(address);
 	    }
 
 	    @PutMapping("/address/{addressId}")
 	    public ResponseEntity<Address> updateAddress(@PathVariable(value = "addressId") Long addressId,
-	         @Valid @RequestBody Address addressDetails) throws ResourceNotFoundException {
-	    	Address address = addressRepository.findById(addressId)
-	        .orElseThrow(() -> new ResourceNotFoundException("Address not found for this id :: " + addressId));
-
-	        address.setAddressId(addressDetails.getAddressId());
-	        address.setBuildingNo(addressDetails.getBuildingNo());
-	        address.setCity(addressDetails.getCity());
-	        address.setState(addressDetails.getState());
-	        address.setField(addressDetails.getField());
-	        address.setZip(addressDetails.getZip());
-	        final Address updatedAddress = addressRepository.save(address);
-	        return ResponseEntity.ok(updatedAddress);
+	         @Valid @RequestBody Address addressDetails) throws AddressNotFoundException {
+	    	Address address = addressService.updateAddress(addressId, addressDetails);
+	        return ResponseEntity.ok(address);
 	    }
 
 	    @DeleteMapping("/address/{addressId}")
 	    public Map<String, Boolean> deleteAddress(@PathVariable(value = "addressId") Long addressId)
-	         throws ResourceNotFoundException {
-	        Address address = addressRepository.findById(addressId)
-	       .orElseThrow(() -> new ResourceNotFoundException("Address not found for this id :: " + addressId));
-
-	        addressRepository.delete(address);
-	        Map<String, Boolean> response = new HashMap<>();
-	        response.put("deleted", Boolean.TRUE);
-	        return response;
+	         throws AddressNotFoundException {
+	        
+	        return addressService.deleteAddress(addressId);
 	    }
 	   
 	}
